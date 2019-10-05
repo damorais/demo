@@ -1,14 +1,16 @@
 plugins {
-	id 'org.springframework.boot' version '2.1.8.RELEASE'
-	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
 	id 'java'
 	id 'eclipse'
 	id 'idea'
+	
+	id 'org.springframework.boot' version '2.1.8.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
+targetCompatibility = 1.8
 
 repositories {
 	mavenCentral()
@@ -19,16 +21,37 @@ configurations {
 	runtimeClasspath {
 		extendsFrom developmentOnly
 	}
+	cucumberRuntime {
+		extendsFrom testImplementation
+	}	
 }
 
 dependencies {
-	compile 'org.springframework.boot:spring-boot-starter-web'
-	compile 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	
-	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'com.h2database:h2'
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	
+	testImplementation 'io.cucumber:cucumber-java8:2.0.1'
+	testImplementation 'io.cucumber:cucumber-spring:4.7.2'
+	testImplementation 'io.cucumber:cucumber-junit:4.7.2'
+	
+	testImplementation 'com.codeborne:phantomjsdriver:1.4.4'
+	
+	testImplementation 'org.seleniumhq.selenium:selenium-java:3.141.59'
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
+}
+
+task cucumber() {
+	dependsOn assemble, compileTestJava
+	doLast {
+		javaexec {
+			main = "io.cucumber.core.cli.Main"
+			classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+			args = ['--plugin', 'pretty', '--glue', 'e2e.stepdefs', 'src/test/resources']
+		}
+	}
 }
